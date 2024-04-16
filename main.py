@@ -16,9 +16,16 @@ class SepssisFeatures(BaseModel):
     BD2: float
     Age: float
     Insurance: float
-   
+
+
 knn_pipeline = joblib.load("./models/knn_pipeline.joblib")
 encoder = joblib.load("./models/label_encoder.joblib")
+svc_pipeline = joblib.load("./models/svc_pipeline .joblib")
+random_pipeline = joblib.load("./models/random_forest_pipeline.joblib")
+encoder = joblib.load("./models/label_encoder.joblib")
+
+
+    
     
 @app.get('/')
 def home(Name=None):
@@ -44,6 +51,55 @@ def knn_predict(data:SepssisFeatures):
 
       # convert the prediction to probability
     probability = knn_pipeline.predict_proba(df)
+
+    # conver probabgilities to list
+    probability = probability.tolist()
+    
+    # return prediction
+    return {"prediction": prediction, 'probability': probability}
+
+
+@app.post('/predict_random_forest')
+def random_forest_predict(data:SepssisFeatures):
+
+    # convert model to dictionary and then to an array
+    df = pd.DataFrame([data.model_dump()])
+
+    # make prediction
+    prediction = random_pipeline.predict(df)
+
+    # convert prediction to int instade of an array
+    prediction = int(prediction[0])
+
+    # converts prediction using encoder
+    prediction = encoder.inverse_transform([prediction])[0]
+
+      # convert the prediction to probability
+    probability = random_pipeline.predict_proba(df)
+
+    # conver probabgilities to list
+    probability = probability.tolist()
+    
+    # return prediction
+    return {"prediction": prediction, 'probability': probability}
+
+@app.post('/predict_svc')
+def svc_predict(data:SepssisFeatures):
+
+    # convert model to dictionary and then to an array
+    df = pd.DataFrame([data.model_dump()])
+
+    # make prediction
+    prediction = svc_pipeline.predict(df)
+
+    # convert prediction to int instade of an array
+    prediction = int(prediction[0])
+
+    # converts prediction using encoder
+    prediction = encoder.inverse_transform([prediction])[0]
+
+      # convert the prediction to probability
+    probability = svc_pipeline.predict_proba(df)
 
     # conver probabgilities to list
     probability = probability.tolist()
